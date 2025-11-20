@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 public class EmployeeDAO {
     public EmployeeTO save(EmployeeTO employee) {
-        String sql = "INSERT INTO T_TG_FUNCIONARIO (nc_nome_completo, dt_nascimento, vl_salario_atual, nm_departamento, ds_nivel_educacao, dt_contratacao, id_cargo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO T_TG_FUNCIONARIO (nc_nome_completo, dt_data_nascimento, vl_salario_atual, nm_nome_departamento, ds_nivel_educacao, dt_contratacao, id_cargo) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql, new String[]{"ID_FUNCIONARIO"})) {
 
@@ -31,11 +31,11 @@ public class EmployeeDAO {
                     }
                 }
                 return employee;
+            } else{
+                return null;
             }
-            return null;
-
         } catch (SQLException e) {
-            System.out.println("Erro ao Salvar Funcionário: " + e.getMessage());
+            System.out.println("Erro ao salvar o funcionário" + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -43,7 +43,7 @@ public class EmployeeDAO {
     }
 
     public EmployeeTO update(EmployeeTO employee) {
-        String sql = "UPDATE T_TG_FUNCIONARIO SET nc_nome_completo=?, dt_nascimento=?, vl_salario_atual=?, nm_departamento=?, ds_nivel_educacao=?, dt_contratacao=?, id_cargo=? WHERE id_funcionario=?";
+        String sql = "UPDATE T_TG_FUNCIONARIO SET nc_nome_completo=?, dt_data_nascimento=?, vl_salario_atual=?, nm_nome_departamento=?, ds_nivel_educacao=?, dt_data_contratacao=?, id_cargo=? WHERE id_funcionario=?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
 
@@ -54,17 +54,16 @@ public class EmployeeDAO {
             ps.setString(5, employee.getEducationLevel());
             ps.setDate(6, Date.valueOf(employee.getHireDate()));
             ps.setLong(7, employee.getRole().getIdRole());
-
-            // WHERE
             ps.setLong(8, employee.getIdEmployee());
 
             if (ps.executeUpdate() > 0) {
                 return employee;
+            } else{
+                return null;
             }
-            return null;
 
         } catch (SQLException e) {
-            System.out.println("Erro ao Atualizar Funcionário: " + e.getMessage());
+            System.out.println("Erro a atualizar funcionário: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -78,7 +77,7 @@ public class EmployeeDAO {
             ps.setLong(1, idEmployee);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao Deletar Funcionário: " + e.getMessage());
+            System.out.println("Erro para deletar funcionário: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -86,8 +85,8 @@ public class EmployeeDAO {
     }
 
     public ArrayList<EmployeeTO> findAll() {
-        String sql = "SELECT F.*, C.NM_CARGO, C.DS_FUNCAO, C.NM_NIVEL FROM T_TG_FUNCIONARIO F " +
-                "INNER JOIN T_TG_CARGO C ON F.ID_CARGO = C.ID_CARGO ORDER BY F.NC_NOME_COMPLETO ASC";
+        String sql = "SELECT f.*, c.nm_nome_cargo, c.ds_funcao, c.nm_nivel FROM T_TG_FUNCIONARIO f " +
+                "INNER JOIN T_TG_CARGO c ON f.id_cargo  = c.id_cargo ORDER BY f.nm_nome_completo ASC";
         ArrayList<EmployeeTO> employees = new ArrayList<>();
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql);
@@ -98,27 +97,25 @@ public class EmployeeDAO {
                     EmployeeTO employee = new EmployeeTO();
                     employee.setIdEmployee(rs.getLong("id_funcionario"));
                     employee.setFullName(rs.getString("nc_nome_completo"));
-                    employee.setBirthDate(rs.getDate("dt_nascimento").toLocalDate());
+                    employee.setBirthDate(rs.getDate("dt_data_nascimento").toLocalDate());
                     employee.setSalary(rs.getBigDecimal("vl_salario_atual"));
-                    employee.setDepartment(rs.getString("nm_departamento"));
+                    employee.setDepartment(rs.getString("nm_nome_departamento"));
                     employee.setEducationLevel(rs.getString("ds_nivel_educacao"));
-                    employee.setHireDate(rs.getDate("dt_contratacao").toLocalDate());
+                    employee.setHireDate(rs.getDate("dt_data_contratacao").toLocalDate());
 
                     RoleTO role = new RoleTO();
                     role.setIdRole(rs.getLong("id_cargo"));
-                    role.setName(rs.getString("nm_cargo"));
+                    role.setName(rs.getString("nm_nome_cargo"));
                     role.setDescription(rs.getString("ds_funcao"));
                     role.setLevel(Level.valueOf(rs.getString("nm_nivel")));
-
                     employee.setRole(role);
-
                     employees.add(employee);
                 }
             } else {
                 return null;
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao Listar Funcionários: " + e.getMessage());
+            System.out.println("Erro para listar funcionários: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -127,7 +124,9 @@ public class EmployeeDAO {
     }
 
     public EmployeeTO findById(Long idEmployee) {
-        EmployeeTO employee;
+        EmployeeTO employee = new EmployeeTO();
+        RoleTO role = new RoleTO();
+
         String sql = "SELECT * FROM T_TG_FUNCIONARIO WHERE id_funcionario = ?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
@@ -135,16 +134,14 @@ public class EmployeeDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    employee = new EmployeeTO();
                     employee.setIdEmployee(rs.getLong("id_funcionario"));
                     employee.setFullName(rs.getString("nc_nome_completo"));
-                    employee.setBirthDate(rs.getDate("dt_nascimento").toLocalDate());
+                    employee.setBirthDate(rs.getDate("dt_data_nascimento").toLocalDate());
                     employee.setSalary(rs.getBigDecimal("vl_salario_atual"));
-                    employee.setDepartment(rs.getString("nm_departamento"));
+                    employee.setDepartment(rs.getString("nm_nome_departamento"));
                     employee.setEducationLevel(rs.getString("ds_nivel_educacao"));
-                    employee.setHireDate(rs.getDate("dt_contratacao").toLocalDate());
+                    employee.setHireDate(rs.getDate("dt_data_contratacao").toLocalDate());
 
-                    RoleTO role = new RoleTO();
                     role.setIdRole(rs.getLong("id_cargo"));
                     employee.setRole(role);
                 }else{
@@ -152,7 +149,7 @@ public class EmployeeDAO {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao Buscar Funcionário por ID: " + e.getMessage());
+            System.out.println("Erro ao buscar funcionário por ID: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -173,11 +170,11 @@ public class EmployeeDAO {
                         EmployeeTO employee = new EmployeeTO();
                         employee.setIdEmployee(rs.getLong("id_funcionario"));
                         employee.setFullName(rs.getString("nc_nome_completo"));
-                        employee.setBirthDate(rs.getDate("dt_nascimento").toLocalDate());
+                        employee.setBirthDate(rs.getDate("dt_data_nascimento").toLocalDate());
                         employee.setSalary(rs.getBigDecimal("vl_salario_atual"));
-                        employee.setDepartment(rs.getString("nm_departamento"));
+                        employee.setDepartment(rs.getString("nm_nome_departamento"));
                         employee.setEducationLevel(rs.getString("ds_nivel_educacao"));
-                        employee.setHireDate(rs.getDate("dt_contratacao").toLocalDate());
+                        employee.setHireDate(rs.getDate("dt_data_contratacao").toLocalDate());
 
                         RoleTO role = new RoleTO();
                         role.setIdRole(rs.getLong("id_cargo"));
@@ -190,7 +187,7 @@ public class EmployeeDAO {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao Buscar Funcionários por Cargo: " + e.getMessage());
+            System.out.println("Erro ao buscar funcionários por cargo: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();

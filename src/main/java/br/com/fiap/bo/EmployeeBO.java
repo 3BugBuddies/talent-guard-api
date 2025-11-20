@@ -2,6 +2,7 @@ package br.com.fiap.bo;
 
 import br.com.fiap.dao.EmployeeDAO;
 import br.com.fiap.dao.RoleDAO;
+import br.com.fiap.dao.SalaryAnalysisDAO;
 import br.com.fiap.exceptions.EmployeeException;
 import br.com.fiap.exceptions.RoleException;
 import br.com.fiap.to.EmployeeTO;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 public class EmployeeBO {
     private EmployeeDAO employeeDAO;
     private RoleDAO roleDAO;
+    private SalaryAnalysisDAO salaryAnalysisDAO;
 
     public EmployeeTO save (EmployeeTO employeeTO) throws EmployeeException {
         employeeDAO = new EmployeeDAO();
@@ -36,6 +38,10 @@ public class EmployeeBO {
         if( employeeRole == null){
             throw new EmployeeException("Não existe um cargo com o id informado.");
         }
+
+
+
+
         employeeTO.setRole(employeeRole);
 
         return employeeDAO.update(employeeTO);
@@ -43,7 +49,13 @@ public class EmployeeBO {
 
     public boolean delete (Long idEmployee) throws EmployeeException {
         employeeDAO = new EmployeeDAO();
-        // to-do deletar as analises de salario que foram feitas do funcionario
+        salaryAnalysisDAO = new SalaryAnalysisDAO();
+
+        if (employeeDAO.findById(idEmployee) == null) {
+            return false;
+        }
+        salaryAnalysisDAO.deleteByEmployee(idEmployee);
+        
         return employeeDAO.delete(idEmployee);
     }
 
