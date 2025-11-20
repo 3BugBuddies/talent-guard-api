@@ -10,7 +10,7 @@ import java.util.List;
 public class RoleDAO {
 
     public RoleTO save(RoleTO roleTO) {
-        String sql = "INSERT INTO T_TG_CARGO (nm_cargo, ds_funcao, nm_nivel) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO T_TG_CARGO (nm_nome_cargo, ds_funcao, nm_nivel) VALUES (?, ?, ?)";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql, new String[]{"ID_CARGO"})) {
             ps.setString(1, roleTO.getName());
@@ -24,11 +24,12 @@ public class RoleDAO {
                     }
                 }
                 return roleTO;
+            } else{
+                return null;
             }
-            return null;
 
         } catch (SQLException e) {
-            System.out.println("Erro ao Salvar Cargo: " + e.getMessage());
+            System.out.println("Erro ao salvar cargo: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -36,7 +37,7 @@ public class RoleDAO {
     }
 
     public RoleTO update(RoleTO roleTO) {
-        String sql = "UPDATE T_TG_CARGO SET nm_cargo=?, ds_funcao=?, nm_nivel=? WHERE id_cargo=?";
+        String sql = "UPDATE T_TG_CARGO SET nm_nome_cargo=?, ds_funcao=?, nm_nivel=? WHERE id_cargo=?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ps.setString(1, roleTO.getName());
@@ -46,11 +47,11 @@ public class RoleDAO {
 
             if (ps.executeUpdate() > 0) {
                 return roleTO;
+            }else {
+                return null;
             }
-            return null;
-
         } catch (SQLException e) {
-            System.out.println("Erro ao Atualizar Cargo: " + e.getMessage());
+            System.out.println("Erro ao atualizar cargo: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -64,7 +65,7 @@ public class RoleDAO {
             ps.setLong(1, idRole);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao Deletar Cargo: " + e.getMessage());
+            System.out.println("Erro ao deletar cargo: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -82,7 +83,7 @@ public class RoleDAO {
                 while (rs.next()) {
                     RoleTO role = new RoleTO();
                     role.setIdRole(rs.getLong("id_cargo"));
-                    role.setName(rs.getString("nm_cargo"));
+                    role.setName(rs.getString("nm_nome_cargo"));
                     role.setDescription(rs.getString("ds_funcao"));
                     role.setLevel(Level.valueOf(rs.getString("nm_nivel")));
                     roles.add(role);
@@ -91,7 +92,7 @@ public class RoleDAO {
                 return null;
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao Listar Cargos: " + e.getMessage());
+            System.out.println("Erro ao listar cargos: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -109,7 +110,7 @@ public class RoleDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     role.setIdRole(rs.getLong("id_cargo"));
-                    role.setName(rs.getString("nm_cargo"));
+                    role.setName(rs.getString("nm_nome_cargo"));
                     role.setDescription(rs.getString("ds_funcao"));
                     role.setLevel(Level.valueOf(rs.getString("nm_nivel")));
                 } else {
@@ -117,7 +118,7 @@ public class RoleDAO {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao Buscar Cargo por ID: " + e.getMessage());
+            System.out.println("Erro ao buscar o cargo por ID: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();

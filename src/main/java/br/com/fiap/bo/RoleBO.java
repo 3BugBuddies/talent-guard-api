@@ -27,6 +27,9 @@ public class RoleBO {
         roleDAO = new RoleDAO();
         Level roleLevel = roleTO.getLevel();
 
+        if (roleDAO.findById(roleTO.getIdRole()) == null) {
+            throw new RoleException("Não existe um cargo com o id informado.");
+        }
         if (roleLevel != Level.JUNIOR && roleLevel != Level.PLENO && roleLevel != Level.SENIOR) {
             throw new RoleException("Nível de cargo inválido. Os níveis permitidos são: JUNIOR, PLENO ou SENIOR.");
         }
