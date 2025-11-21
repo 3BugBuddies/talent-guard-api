@@ -2,6 +2,7 @@ package br.com.fiap.bo;
 
 import br.com.fiap.dao.BenchmarkDAO;
 import br.com.fiap.dao.EmployeeDAO;
+import br.com.fiap.dao.RoleDAO;
 import br.com.fiap.dao.SalaryAnalysisDAO;
 import br.com.fiap.enums.RiskClassification;
 import br.com.fiap.exceptions.BenchmarkException;
@@ -13,17 +14,20 @@ import br.com.fiap.to.RoleTO;
 import br.com.fiap.to.SalaryAnalysisTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class SalaryAnalysisBO {
     private SalaryAnalysisDAO analysisDAO;
     private EmployeeDAO employeeDAO;
     private BenchmarkDAO benchmarkDAO;
+    private RoleDAO roleDAO;
 
     public SalaryAnalysisTO save(SalaryAnalysisTO salaryAnalysisTO) throws EmployeeException, BenchmarkException, SalaryAnalysisException {
         analysisDAO = new SalaryAnalysisDAO();
         employeeDAO = new EmployeeDAO();
         benchmarkDAO = new BenchmarkDAO();
+        roleDAO = new RoleDAO();
 
         EmployeeTO employee = employeeDAO.findById(salaryAnalysisTO.getEmployee().getIdEmployee());
         if (employee == null) {
@@ -35,17 +39,20 @@ public class SalaryAnalysisBO {
             throw new BenchmarkException("Não existe um benchmark com o id informado.");
         }
 
-        RoleTO employeeRole = employee.getRole();
-        RoleTO benchmarkRole = benchmark.getRole();
 
-        if (!employeeRole.getIdRole().equals(benchmarkRole.getIdRole())) {
+        if (!employee.getRole().getIdRole().equals(benchmark.getRole().getIdRole())) {
             throw new SalaryAnalysisException("O cargo do funcionário não corresponde ao cargo do benchmark usado para a análise.");
         }
 
+        RoleTO role = roleDAO.findById(employee.getRole().getIdRole());
+
+        employee.setRole(role);
+        benchmark.setRole(role);
         salaryAnalysisTO.setEmployee(employee);
         salaryAnalysisTO.setBenchmark(benchmark);
         salaryAnalysisTO.setRecordedSalary(employee.getSalary());
         salaryAnalysisTO.setMarketAverage(benchmark.getAverageSalary());
+        salaryAnalysisTO.setAnalysisDate(LocalDate.now());
 
         RiskClassification risk = calculateRisk(employee.getSalary(), benchmark);
         salaryAnalysisTO.setRisk(risk);
@@ -57,6 +64,7 @@ public class SalaryAnalysisBO {
         analysisDAO = new SalaryAnalysisDAO();
         employeeDAO = new EmployeeDAO();
         benchmarkDAO = new BenchmarkDAO();
+        roleDAO = new RoleDAO();
 
         if (analysisDAO.findById(salaryAnalysisTO.getIdSalaryAnalysis()) == null) {
             throw new SalaryAnalysisException("Não existe uma análise salarial com o id informado.");
@@ -72,17 +80,21 @@ public class SalaryAnalysisBO {
             throw new BenchmarkException("Não existe um benchmark com o id informado.");
         }
 
-        RoleTO employeeRole = employee.getRole();
-        RoleTO benchmarkRole = benchmark.getRole();
-
-        if (!employeeRole.getIdRole().equals(benchmarkRole.getIdRole())) {
+        if (!employee.getRole().getIdRole().equals(benchmark.getRole().getIdRole())) {
             throw new SalaryAnalysisException("O cargo do funcionário não corresponde ao cargo do benchmark usado para a análise.");
         }
+
+        RoleTO role = roleDAO.findById(employee.getRole().getIdRole());
+
+        employee.setRole(role);
+        benchmark.setRole(role);
 
         salaryAnalysisTO.setEmployee(employee);
         salaryAnalysisTO.setBenchmark(benchmark);
         salaryAnalysisTO.setRecordedSalary(employee.getSalary());
         salaryAnalysisTO.setMarketAverage(benchmark.getAverageSalary());
+        salaryAnalysisTO.setAnalysisDate(LocalDate.now());
+
 
         RiskClassification risk = calculateRisk(employee.getSalary(), benchmark);
         salaryAnalysisTO.setRisk(risk);
@@ -103,6 +115,7 @@ public class SalaryAnalysisBO {
         analysisDAO = new SalaryAnalysisDAO();
         employeeDAO = new EmployeeDAO();
         benchmarkDAO = new BenchmarkDAO();
+        roleDAO = new RoleDAO();
 
         SalaryAnalysisTO salaryAnalysisTO = analysisDAO.findById(idAnalysis);
         if (salaryAnalysisTO == null) {
@@ -119,6 +132,11 @@ public class SalaryAnalysisBO {
             throw new BenchmarkException("Não existe um benchmark com o id informado.");
         }
 
+        RoleTO role = roleDAO.findById(employee.getRole().getIdRole());
+
+        employee.setRole(role);
+        benchmark.setRole(role);
+
         salaryAnalysisTO.setEmployee(employee);
         salaryAnalysisTO.setBenchmark(benchmark);
 
@@ -127,11 +145,14 @@ public class SalaryAnalysisBO {
 
 
     private RiskClassification calculateRisk(BigDecimal employeeSalary, BenchmarkTO benchmark) {
-        if (employeeSalary.compareTo(benchmark.getFloorSalary()) < 0) {
+        BigDecimal marketAvg = benchmark.getAverageSalary();
+        if (employeeSalary.compareTo(marketAvg.multiply(new BigDecimal("0.8"))) < 0) {
             return RiskClassification.BELOW_FLOOR;
-        } else if (employeeSalary.compareTo(benchmark.getCeilingSalary()) > 0) {
+        }
+        else if (employeeSalary.compareTo(marketAvg.multiply(new BigDecimal("1.2"))) > 0) {
             return RiskClassification.ABOVE_CEILING;
-        } else {
+        }
+        else {
             return RiskClassification.ON_TARGET;
         }
     }

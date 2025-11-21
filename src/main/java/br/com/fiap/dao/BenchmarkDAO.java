@@ -116,6 +116,7 @@ public class BenchmarkDAO {
 
     public BenchmarkTO findById(Long idBenchmark) {
         BenchmarkTO benchmark = new BenchmarkTO();
+        RoleTO role = new RoleTO();
         String sql = "SELECT * FROM T_TG_BENCHMARK WHERE id_benchmark = ?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
@@ -127,6 +128,8 @@ public class BenchmarkDAO {
                 benchmark.setAverageSalary(rs.getBigDecimal("vl_medio_mercado"));
                 benchmark.setCeilingSalary(rs.getBigDecimal("vl_teto_mercado"));
                 benchmark.setReferenceDate(rs.getDate("dt_ultima_atualizacao").toLocalDate());
+                role.setIdRole(rs.getLong("id_cargo"));
+                benchmark.setRole(role);
             } else {
                 return null;
             }

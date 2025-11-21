@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 public class EmployeeDAO {
     public EmployeeTO save(EmployeeTO employee) {
-        String sql = "INSERT INTO T_TG_FUNCIONARIO (nc_nome_completo, dt_data_nascimento, vl_salario_atual, nm_nome_departamento, ds_nivel_educacao, dt_contratacao, id_cargo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO T_TG_FUNCIONARIO (nc_nome_completo, dt_data_nascimento, vl_salario_atual, nm_nome_departamento, ds_nivel_educacao, dt_data_contratacao, id_cargo) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql, new String[]{"ID_FUNCIONARIO"})) {
 
@@ -86,7 +86,7 @@ public class EmployeeDAO {
 
     public ArrayList<EmployeeTO> findAll() {
         String sql = "SELECT f.*, c.nm_nome_cargo, c.ds_funcao, c.nm_nivel FROM T_TG_FUNCIONARIO f " +
-                "INNER JOIN T_TG_CARGO c ON f.id_cargo  = c.id_cargo ORDER BY f.nm_nome_completo ASC";
+                "INNER JOIN T_TG_CARGO c ON f.id_cargo  = c.id_cargo ORDER BY f.nc_nome_completo ASC";
         ArrayList<EmployeeTO> employees = new ArrayList<>();
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql);

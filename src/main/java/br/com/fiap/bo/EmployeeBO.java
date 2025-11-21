@@ -4,7 +4,6 @@ import br.com.fiap.dao.EmployeeDAO;
 import br.com.fiap.dao.RoleDAO;
 import br.com.fiap.dao.SalaryAnalysisDAO;
 import br.com.fiap.exceptions.EmployeeException;
-import br.com.fiap.exceptions.RoleException;
 import br.com.fiap.to.EmployeeTO;
 import br.com.fiap.to.RoleTO;
 
@@ -20,13 +19,11 @@ public class EmployeeBO {
         roleDAO = new RoleDAO();
 
         RoleTO employeeRole = roleDAO.findById(employeeTO.getRole().getIdRole());
-
         if(employeeRole == null){
             throw new EmployeeException("Não existe um cargo com o id informado.");
         }
 
         employeeTO.setRole(employeeRole);
-
         return employeeDAO.save(employeeTO);
     }
 
@@ -39,11 +36,12 @@ public class EmployeeBO {
             throw new EmployeeException("Não existe um cargo com o id informado.");
         }
 
-
-
+        EmployeeTO employeeDB = employeeDAO.findById(employeeTO.getIdEmployee());
+        if (employeeTO.getSalary().compareTo(employeeDB.getSalary()) < 0 ) {
+            throw new EmployeeException("Não é permitido reduzir o salário do funcionário.");
+        }
 
         employeeTO.setRole(employeeRole);
-
         return employeeDAO.update(employeeTO);
     }
 

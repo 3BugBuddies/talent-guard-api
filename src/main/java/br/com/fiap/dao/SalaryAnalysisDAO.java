@@ -1,8 +1,10 @@
 package br.com.fiap.dao;
 
+import br.com.fiap.enums.Level;
 import br.com.fiap.enums.RiskClassification;
 import br.com.fiap.to.BenchmarkTO;
 import br.com.fiap.to.EmployeeTO;
+import br.com.fiap.to.RoleTO;
 import br.com.fiap.to.SalaryAnalysisTO;
 
 import java.sql.Date;
@@ -13,7 +15,7 @@ import java.util.ArrayList;
 
 public class SalaryAnalysisDAO {
     public SalaryAnalysisTO save(SalaryAnalysisTO analysis) {
-        String sql = "INSERT INTO T_TG_ANALISE_SALARIAL (id_func, id_benchmark, vl_salario_analise, vl_medio_mercado_analise, ds_risco, dt_data_analise) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO T_TG_ANALISE_SALARIAL (id_funcionario, id_benchmark, vl_salario_analise, vl_medio_mercado_analise, ds_risco, dt_data_analise) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql, new String[]{"ID_ANALISE_SALARIAL"})) {
 
@@ -68,7 +70,7 @@ public class SalaryAnalysisDAO {
     }
 
     public boolean delete(Long idRole) {
-        String sql = "DELETE FROM T_TG_BENCHMARK_SALARIAL WHERE id_cargo = ?";
+        String sql = "DELETE FROM T_TG_ANALISE_SALARIAL WHERE id_cargo = ?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ps.setLong(1, idRole);
@@ -84,25 +86,42 @@ public class SalaryAnalysisDAO {
 
     public ArrayList<SalaryAnalysisTO> findAll() {
         ArrayList<SalaryAnalysisTO> listAnalysis = new ArrayList<>();
-        String sql = "SELECT B.*, F.nc_nome_completo FROM T_TG_BENCHMARK_SALARIAL B INNER JOIN T_TG_FUNCIONARIO F ON B.id_func = F.id_funcionario " +
-                "ORDER BY B.dt_data_analise DESC";
+        String sql = "SELECT A.*, F.*, C.* FROM T_TG_ANALISE_SALARIAL A INNER JOIN T_TG_FUNCIONARIO F ON A.id_funcionario = F.id_funcionario " +
+                "INNER JOIN T_TG_CARGO C ON F.id_cargo = C.id_cargo ORDER BY A.dt_data_analise DESC";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             if (rs != null) {
                 while (rs.next()) {
                     SalaryAnalysisTO analysis = new SalaryAnalysisTO();
-                    analysis.setIdSalaryAnalysis(rs.getLong("id_benchmark"));
+
+                    analysis.setIdSalaryAnalysis(rs.getLong("id_analise_salarial"));
                     analysis.setRecordedSalary(rs.getBigDecimal("vl_salario_analise"));
                     analysis.setMarketAverage(rs.getBigDecimal("vl_medio_mercado_analise"));
-                    analysis.setAnalysisDate(rs.getDate("dt_data_analise").toLocalDate());
                     analysis.setRisk(RiskClassification.valueOf(rs.getString("ds_risco")));
+                    analysis.setAnalysisDate(rs.getDate("dt_data_analise").toLocalDate());
 
                     EmployeeTO employee = new EmployeeTO();
                     employee.setIdEmployee(rs.getLong("id_funcionario"));
                     employee.setFullName(rs.getString("nc_nome_completo"));
-                    analysis.setEmployee(employee);
+                    employee.setSalary(rs.getBigDecimal("vl_salario_atual"));
+                    employee.setDepartment(rs.getString("nm_nome_departamento"));
+                    employee.setEducationLevel(rs.getString("ds_nivel_educacao"));
+                    employee.setBirthDate(rs.getDate("dt_data_nascimento").toLocalDate());
+                    employee.setHireDate(rs.getDate("dt_data_contratacao").toLocalDate());
 
+                    RoleTO role = new RoleTO();
+                    role.setIdRole(rs.getLong("id_cargo"));
+                    role.setName(rs.getString("nm_nome_cargo"));
+                    role.setDescription(rs.getString("ds_funcao"));
+                    role.setLevel(Level.valueOf(rs.getString("nm_nivel")));
+
+                    BenchmarkTO benchmark = new BenchmarkTO();
+                    benchmark.setIdBenchmark(rs.getLong("id_benchmark"));
+
+                    employee.setRole(role);
+                    analysis.setEmployee(employee);
+                    analysis.setBenchmark(benchmark);
                     listAnalysis.add(analysis);
                 }
             } else {
@@ -121,17 +140,26 @@ public class SalaryAnalysisDAO {
     public SalaryAnalysisTO findById(Long idBenchmark) {
 
         SalaryAnalysisTO analysis = new SalaryAnalysisTO();
-        String sql = "SELECT * FROM T_TG_BENCHMARK_SALARIAL WHERE id_benchmark = ? ORDER BY dt_data_analise DESC";
+        String sql = "SELECT * FROM T_TG_ANALISE_SALARIAL WHERE id_benchmark = ? ORDER BY dt_data_analise DESC";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ps.setLong(1, idBenchmark);
             ResultSet rs = ps.executeQuery();
-            if (rs != null) {
+            if (rs.next()) {
                 analysis.setIdSalaryAnalysis(rs.getLong("id_benchmark"));
                 analysis.setRecordedSalary(rs.getBigDecimal("vl_salario_analise"));
                 analysis.setMarketAverage(rs.getBigDecimal("vl_medio_mercado_analise"));
                 analysis.setAnalysisDate(rs.getDate("dt_data_analise").toLocalDate());
                 analysis.setRisk(RiskClassification.valueOf(rs.getString("ds_risco")));
+
+                EmployeeTO employee = new EmployeeTO();
+                employee.setIdEmployee(rs.getLong("id_funcionario"));
+
+                BenchmarkTO benchmark = new BenchmarkTO();
+                benchmark.setIdBenchmark(rs.getLong("id_benchmark"));
+
+                analysis.setEmployee(employee);
+                analysis.setBenchmark(benchmark);
             } else {
                 return null;
             }
@@ -147,7 +175,7 @@ public class SalaryAnalysisDAO {
     public ArrayList<SalaryAnalysisTO> findAllByBenchmark(Long idBenchmark) {
 
         ArrayList<SalaryAnalysisTO> listAnalysis = new ArrayList<>();
-        String sql = "SELECT * FROM T_TG_BENCHMARK_SALARIAL WHERE id_benchmark = ? ORDER BY dt_data_analise DESC";
+        String sql = "SELECT * FROM T_TG_ANALISE_SALARIAL WHERE id_benchmark = ? ORDER BY dt_data_analise DESC";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ps.setLong(1, idBenchmark);
@@ -174,7 +202,7 @@ public class SalaryAnalysisDAO {
     }
 
     public boolean deleteByEmployee(Long idEmployee) {
-        String sql = "DELETE FROM T_TG_BENCHMARK_SALARIAL WHERE id_funcionario = ?";
+        String sql = "DELETE FROM T_TG_ANALISE_SALARIAL WHERE id_funcionario = ?";
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
             ps.setLong(1, idEmployee);
             return ps.executeUpdate() > 0;
