@@ -69,14 +69,14 @@ public class SalaryAnalysisDAO {
         }
     }
 
-    public boolean delete(Long idRole) {
-        String sql = "DELETE FROM T_TG_ANALISE_SALARIAL WHERE id_cargo = ?";
+    public boolean delete(Long idAnalysis) {
+        String sql = "DELETE FROM T_TG_ANALISE_SALARIAL WHERE id_analise_salarial = ?";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
-            ps.setLong(1, idRole);
+            ps.setLong(1, idAnalysis);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.out.println("Erro ao deletar cargo: " + e.getMessage());
+            System.out.println("Erro ao deletar analise salárial: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();
@@ -137,16 +137,16 @@ public class SalaryAnalysisDAO {
     }
 
 
-    public SalaryAnalysisTO findById(Long idBenchmark) {
+    public SalaryAnalysisTO findById(Long idAnalysis) {
 
         SalaryAnalysisTO analysis = new SalaryAnalysisTO();
-        String sql = "SELECT * FROM T_TG_ANALISE_SALARIAL WHERE id_benchmark = ? ORDER BY dt_data_analise DESC";
+        String sql = "SELECT * FROM T_TG_ANALISE_SALARIAL WHERE id_analise_salarial = ? ORDER BY dt_data_analise DESC";
 
         try (PreparedStatement ps = ConnectionFactory.getConnection().prepareStatement(sql)) {
-            ps.setLong(1, idBenchmark);
+            ps.setLong(1, idAnalysis);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                analysis.setIdSalaryAnalysis(rs.getLong("id_benchmark"));
+                analysis.setIdSalaryAnalysis(rs.getLong("id_analise_salarial"));
                 analysis.setRecordedSalary(rs.getBigDecimal("vl_salario_analise"));
                 analysis.setMarketAverage(rs.getBigDecimal("vl_medio_mercado_analise"));
                 analysis.setAnalysisDate(rs.getDate("dt_data_analise").toLocalDate());
@@ -164,7 +164,7 @@ public class SalaryAnalysisDAO {
                 return null;
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao buscar análises pelo benchmark: " + e.getMessage());
+            System.out.println("Erro ao buscar análises pelo id: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         } finally {
             ConnectionFactory.closeConnection();

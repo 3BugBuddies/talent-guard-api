@@ -5,7 +5,6 @@ import br.com.fiap.to.RoleTO;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class RoleDAO {
 
