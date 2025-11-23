@@ -9,10 +9,10 @@ A API expõe os seguintes recursos REST, cada um com as operações CRUD (Criaç
 
 | Recurso | Endpoint Base | Descrição |
 | :--- | :--- | :--- |
-| **Cargos (Roles)** | `/role` | Gerencia a estrutura hierárquica da empresa. [cite\_start]Permite definir níveis de senioridade obrigatórios (`JUNIOR`, `PLENO`, `SENIOR`). |
-| **Funcionários** | `/employee` | Gerencia as informações cadastrais, departamento e salário atual dos colaboradores. [cite\_start]Valida a não redução salarial em atualizações. |
-| **Benchmarks** | `/benchmark` | Gerencia os dados de mercado ("régua" salarial). [cite\_start]Armazena Piso, Média e Teto de mercado para um cargo específico. |
-| **Análise Salarial** | `/analysis` | Realiza o cruzamento entre o salário do funcionário e o benchmark. [cite\_start]Classifica automaticamente o risco em: `BELOW_FLOOR` (Abaixo do Piso), `ON_TARGET` (Na Meta) ou `ABOVE_CEILING` (Acima do Teto). |
+| **Cargos (Roles)** | `/role` | Gerencia a estrutura hierárquica da empresa. Permite definir níveis de senioridade obrigatórios (`JUNIOR`, `PLENO`, `SENIOR`). |
+| **Funcionários** | `/employee` | Gerencia as informações cadastrais, departamento e salário atual dos colaboradores. Valida a não redução salarial em atualizações. |
+| **Benchmarks** | `/benchmark` | Gerencia os dados de mercado ("régua" salarial). Armazena Piso, Média e Teto de mercado para um cargo específico. |
+| **Análise Salarial** | `/analysis` | Realiza o cruzamento entre o salário do funcionário e o benchmark. Classifica automaticamente o risco em: `BELOW_FLOOR` (Abaixo do Piso), `ON_TARGET` (Na Meta) ou `ABOVE_CEILING` (Acima do Teto). |
 
 ## ⚙️ Configuração Técnica
 
